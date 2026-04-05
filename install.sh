@@ -187,4 +187,5 @@ echo "1. Copy workspace: scp -r ~/.openclaw/workspace/* root@$DOMAIN:$INSTALL_DI
 echo "2. Check logs: ./scripts/logs.sh"
 echo "3. Open: https://$DOMAIN"
 echo ""
-echo -e "${BLUE}Documentation:${NC} https://github.com/ulanevg/openclaw-vps"
+echo -e "${BLUE}Documentation:${NC} https://github.com/ulanovskiy/openclaw-vps"
+"

@@ -237,9 +237,10 @@ MIT License — use freely.
 ## 🔗 Links
 
 - **Web UI:** https://ai.ulanevg.ru
-- **Repository:** https://github.com/ulanevg/openclaw-vps
+- **Repository:** https://github.com/ulanovskiy/openclaw-vps
 - **Documentation:** See README.md
 
 ---
 
 Created by J.A.R.V.I.S. for Евгений | ai.ulanevg.ru
+u
