@@ -218,7 +218,7 @@ docker-compose up -d
 
 ```bash
 # Clone repository
-git clone https://github.com/ulanevg/openclaw-vps.git
+git clone https://github.com/ulanovskiy/openclaw-vps.git
 cd openclaw-vps
 
 # Modify Web UI
