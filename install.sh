@@ -1,6 +1,6 @@
 #!/bin/bash
 # OpenClaw VPS Full Deployment
-# Repository: github.com/ulanevg/openclaw-vps
+# Repository: github.com/ulanovskiy/openclaw-vps
 # Includes: PostgreSQL, Redis, Gateway, Web UI, SSL
 
 set -e
@@ -188,4 +188,5 @@ echo "2. Check logs: ./scripts/logs.sh"
 echo "3. Open: https://$DOMAIN"
 echo ""
 echo -e "${BLUE}Documentation:${NC} https://github.com/ulanovskiy/openclaw-vps"
+"
 "

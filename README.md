@@ -30,7 +30,7 @@ Complete OpenClaw deployment on Ubuntu 24.04 with Web UI, PostgreSQL, Redis, SSL
 
 ```bash
 ssh root@144.31.26.252
-curl -fsSL https://raw.githubusercontent.com/ulanevg/openclaw-vps/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ulanovskiy/openclaw-vps/master/install.sh | bash
 ```
 
 ## 📋 Requirements
