@@ -26,7 +26,7 @@ fi
 INSTALL_DIR="/opt/openclaw"
 DOMAIN="ai.ulanevg.ru"
 EMAIL="admin@ulanevg.ru"
-REPO="https://raw.githubusercontent.com/ulanevg/openclaw-vps/main"
+REPO="https://raw.githubusercontent.com/ulanovskiy/openclaw-vps/master"
 
 echo -e "${YELLOW}[1/12] Updating system...${NC}"
 apt-get update -y > /dev/null 2>&1
