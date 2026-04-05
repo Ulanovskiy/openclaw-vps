@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: openclaw-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: openclaw
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: openclaw
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - openclaw-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openclaw"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: openclaw-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - openclaw-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  openclaw:
+    image: node:20-alpine
+    container_name: openclaw-gateway
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://openclaw:${DB_PASSWORD}@postgres:5432/openclaw
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - OPENCLAW_WORKSPACE=/workspace
+      - OPENCLAW_CONFIG_PATH=/workspace/.openclaw/config.json
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=18789
+    volumes:
+      - ./data/openclaw:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - openclaw-net
+    ports:
+      - "127.0.0.1:18789:18789"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: sh -c "npm install && npm start"
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: openclaw-web
+    restart: unless-stopped
+    environment:
+      - API_URL=http://openclaw:18789
+      - WS_URL=ws://openclaw:18789
+    networks:
+      - openclaw-net
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - openclaw
+
+networks:
+  openclaw-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
