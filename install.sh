@@ -107,19 +107,46 @@ EOF
 chmod 600 .env
 echo -e "${GREEN}✓ Configuration created${NC}"
 
-echo -e "${YELLOW}[7/12] Setting up Nginx...${NC}"
-cp nginx.conf /etc/nginx/sites-available/openclaw
+echo -e "${YELLOW}[7/12] Setting up Nginx (HTTP only)...${NC}"
+# Create temporary HTTP-only config (SSL will be added after certbot)
+cat > /etc/nginx/sites-available/openclaw << 'NGINX_EOF'
+server {
+    listen 80;
+    server_name _;
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    
+    location / {
+        proxy_pass http://127.0.0.1:18789;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400;
+    }
+}
+NGINX_EOF
+
 ln -sf /etc/nginx/sites-available/openclaw /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t > /dev/null 2>&1
 systemctl reload nginx
-echo -e "${GREEN}✓ Nginx configured${NC}"
+echo -e "${GREEN}✓ Nginx configured (HTTP)${NC}"
 
 echo -e "${YELLOW}[8/12] Setting up SSL certificate...${NC}"
 mkdir -p /var/www/certbot
+
+# Obtain SSL certificate
 certbot --nginx -d $DOMAIN --agree-tos --no-eff-email -m $EMAIL --non-interactive --quiet 2>/dev/null || {
-    echo -e "${YELLOW}⚠ SSL will be configured on first successful Nginx start${NC}"
+    echo -e "${YELLOW}⚠ SSL certificate failed, will retry on next start${NC}"
 }
+
+# Copy full nginx config with SSL (for when certbot succeeds or manual setup)
+cp nginx.conf /etc/nginx/sites-available/openclaw
+nginx -t > /dev/null 2>&1 && systemctl reload nginx || echo -e "${YELLOW}⚠ Nginx SSL config will activate after certificate is obtained${NC}"
 
 echo -e "${YELLOW}[9/12] Setting up auto-renewal...${NC}"
 (crontab -l 2>/dev/null | grep -v certbot; echo "0 12 * * * certbot renew --quiet --deploy-hook 'systemctl reload nginx'") | crontab -
