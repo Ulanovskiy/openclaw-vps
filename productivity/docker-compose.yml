@@ -1,0 +1,97 @@
+# Личная продуктивность: Outline + Vikunja
+# Для Евгения - база знаний и управление задачами
+
+version: '3.8'
+
+services:
+  # ==================== OUTLINE (База знаний) ====================
+  outline:
+    image: outlinewiki/outline:latest
+    container_name: outline
+    restart: unless-stopped
+    env_file: ./outline.env
+    ports:
+      - "3001:3000"
+    volumes:
+      - outline-storage:/var/lib/outline/data
+    depends_on:
+      - outline-postgres
+      - outline-redis
+      - outline-minio
+    networks:
+      - outline-net
+
+  outline-postgres:
+    image: postgres:15-alpine
+    container_name: outline-db
+    restart: unless-stopped
+    env_file: ./outline.env
+    volumes:
+      - outline-db:/var/lib/postgresql/data
+    networks:
+      - outline-net
+
+  outline-redis:
+    image: redis:7-alpine
+    container_name: outline-redis
+    restart: unless-stopped
+    volumes:
+      - outline-redis:/data
+    networks:
+      - outline-net
+
+  outline-minio:
+    image: minio/minio:latest
+    container_name: outline-minio
+    restart: unless-stopped
+    env_file: ./outline.env
+    volumes:
+      - outline-minio:/data
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - outline-net
+
+  # ==================== VIKUNJA (Задачи) ====================
+  vikunja:
+    image: vikunja/vikunja:latest
+    container_name: vikunja
+    restart: unless-stopped
+    env_file: ./vikunja.env
+    ports:
+      - "3456:3456"
+    volumes:
+      - vikunja-files:/app/vikunja/files
+    depends_on:
+      - vikunja-db
+    networks:
+      - vikunja-net
+
+  vikunja-db:
+    image: postgres:15-alpine
+    container_name: vikunja-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vikunja
+      POSTGRES_PASSWORD: ${VIKUNJA_DB_PASSWORD:-vikunja_secret}
+      POSTGRES_DB: vikunja
+    volumes:
+      - vikunja-db:/var/lib/postgresql/data
+    networks:
+      - vikunja-net
+
+volumes:
+  outline-storage:
+  outline-db:
+  outline-redis:
+  outline-minio:
+  vikunja-files:
+  vikunja-db:
+
+networks:
+  outline-net:
+    driver: bridge
+  vikunja-net:
+    driver: bridge
